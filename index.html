@@ -319,6 +319,16 @@ function buildHall(){
   const scr = ledMat(0x6aa8ff); scr.color.multiplyScalar(.5);
   for(const x of [-1.45,-.75,.75,1.45]){ addBox('fix',.5,.09,.5,x,1.795,-12.35); solid(scr,.18,.005,.12,x,1.842,-12.45); }
   addBox('fix',.55,.1,.45,0,1.8,-12.35);
+  // backstage on the stage: high cocktail tables at the sides and behind the booth
+  const tblTop=new THREE.MeshStandardMaterial({ color:0x1a1a1e, roughness:.35, metalness:.5 });
+  const glassM=new THREE.MeshStandardMaterial({ color:0xc8d6e0, roughness:.1, metalness:.2, transparent:true, opacity:.6, emissive:0x202830 });
+  for(const [x,z] of [[-5.3,-14.6],[-3.8,-12.4],[4.2,-14.7],[5.6,-12.6],[-1.8,-15.1],[2.2,-15.1]]){
+    const top=new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,.04,20),tblTop); top.position.set(x,.7+1.08,z); scene.add(top);
+    const leg=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,1.06,8),tblTop); leg.position.set(x,.7+.53,z); scene.add(leg);
+    const base=new THREE.Mesh(new THREE.CylinderGeometry(.22,.24,.03,16),tblTop); base.position.set(x,.715,z); scene.add(base);
+    for(let i=0;i<2;i++){ const gl=new THREE.Mesh(new THREE.CylinderGeometry(.035,.03,.14,8),glassM); gl.position.set(x+(i?.12:-.1),.7+1.17,z+(i?.08:-.05)); scene.add(gl); }
+    collide(x-.34,x+.34,z-.34,z+.34);
+  }
   const dl=ledMat(0xff3a2a); for(let i=0;i<6;i++) solid(dl,.02,.005,.02,-.2+i*.08,1.853,-12.25);
   // left privé tiers + gold mirror capsules
   addBox('plat',2.8,.45,17.4,-8.6,.225,-1.3); addBox('plat',1.4,.9,17.4,-9.3,.45,-1.3);
@@ -491,6 +501,17 @@ function buildSigns(){
     const pl=new THREE.Mesh(new THREE.PlaneGeometry(pw,ph),pm); pl.position.set(x+.025,y,z); pl.rotation.y=Math.PI/2; scene.add(pl);
     solid(M.rail,.03,ph+.04,pw+.04,x,y,z);
   }
+  // TECHNOMAS banner on the corridor wall (outside, right-hand side of the building)
+  if(IMG.tm){ const [c,g]=cnv(1200,240); g.fillStyle='#0c0c0e'; g.fillRect(0,0,1200,240);
+    g.strokeStyle='#d42030'; g.lineWidth=8; g.strokeRect(14,14,1172,212);
+    const w=1040, h=Math.round(IMG.tm.height*w/IMG.tm.width); g.drawImage(tinted(IMG.tm,w,h,'#f2efe8'),80,(240-h)/2);
+    g.fillStyle='#8a8a8f'; for(const x of [30,600,1170]) for(const y of [30,210]){ g.beginPath(); g.arc(x,y,7,0,7); g.fill(); }
+    const tx=tex(c); const bm=new THREE.MeshStandardMaterial({ map:tx, emissiveMap:tx, emissive:0xffffff, emissiveIntensity:.28, roughness:.85, side:THREE.DoubleSide });
+    const bw=5.4, bh=bw*240/1200, ban=new THREE.Mesh(new THREE.PlaneGeometry(bw,bh,24,1),bm);
+    const pos=ban.geometry.attributes.position; for(let i=0;i<pos.count;i++){ pos.setZ(i,Math.sin((pos.getX(i)/bw+.5)*Math.PI*6)*.02); } ban.geometry.computeVertexNormals();
+    ban.position.set(10.36,2.25,-2.6); ban.rotation.y=Math.PI/2; scene.add(ban);
+    const rope=new THREE.MeshBasicMaterial({ color:0x333333 });
+    for(const dz of [-bw/2,bw/2]) solid(rope,.02,.4,.02,10.34,2.25+bh/2+.18,-2.6+dz); }
   // regia neon drawing on clear acrylic
   { const [c,g]=cnv(512,620); plate(g,40,30,432,560,40); g.lineCap='round'; g.lineJoin='round';
     glow(g,'#ff2a2a',(core)=>{ g.lineWidth=core?3:8; g.beginPath();
@@ -573,6 +594,16 @@ function buildCrowd(pathPts){
     tryAdd(x,z,groundAt(x,z));
   }
   people.forEach(p=>{ p.rot = Math.atan2(0-p.x, -14-p.z) + Math.PI + rnd(-.4,.4); });
+  // backstage guests: around the tables and behind the DJ, chatting rather than facing the stage
+  const back0=people.length;
+  for(let i=0;i<900&&people.length<back0+26;i++){
+    const x=Math.random()<.5?rnd(-6.6,-2.9):rnd(2.9,6.6), z=rnd(-15.5,-11.6);
+    if(Math.abs(x-.5)<1.0&&z<-12.6) continue;
+    if(Math.abs(x)>4.6&&Math.abs(x)<5.2&&z>-12.2) continue;
+    tryAdd(x,z,.7);
+  }
+  for(let i=0;i<300&&people.length<back0+34;i++){ const x=rnd(-2.6,2.6), z=rnd(-15.6,-14.2); if(Math.abs(x-.5)<.9) continue; tryAdd(x,z,.7); }
+  for(let i=back0;i<people.length;i++){ const p=people[i]; p.rot=rnd(0,6.28); p.up=Math.random()<.12; }
   const nUp=people.filter(p=>p.up).length;
   crowd=new THREE.InstancedMesh(personGeo(false),mat,people.length-nUp); crowdUp=new THREE.InstancedMesh(personGeo(true),mat,nUp);
   scene.add(crowd,crowdUp);
