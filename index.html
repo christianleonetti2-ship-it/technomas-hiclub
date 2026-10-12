@@ -233,8 +233,9 @@ function fogTex(){
 /* neon signs: glowing tube text on clear acrylic */
 function glow(g, color, draw, core=.55){
   g.save(); g.shadowColor=color; g.fillStyle=color; g.strokeStyle=color;
-  for(const b of [34,16,6]){ g.shadowBlur=b; draw(); }
-  g.shadowBlur=0; g.globalAlpha=core; g.fillStyle='#fff'; g.strokeStyle='#fff'; draw(true); g.restore();
+  // soft halo, then the crisp tube, then a thin hot core: readable instead of a blown-out blob
+  g.globalAlpha=.4; g.shadowBlur=22; draw(); g.globalAlpha=1; g.shadowBlur=3; draw();
+  g.shadowBlur=0; g.globalAlpha=core*.45; g.fillStyle='#fff'; g.strokeStyle='#fff'; draw(true); g.restore();
 }
 function plate(g,x,y,w,h,r=26){ g.save(); g.beginPath(); g.roundRect(x,y,w,h,r); g.fillStyle='rgba(255,255,255,.045)'; g.fill(); g.strokeStyle='rgba(255,255,255,.18)'; g.lineWidth=3; g.stroke(); g.restore(); }
 function textLines(g, lines, font, color, cx, y0, lh, coreScale=1){
@@ -244,7 +245,7 @@ function textLines(g, lines, font, color, cx, y0, lh, coreScale=1){
 const signMats=[];
 function sign(c, w, h, pos, ry, boost=1.5){
   const m=new THREE.MeshBasicMaterial({ map:tex(c), transparent:true, depthWrite:false, toneMapped:false, blending:THREE.AdditiveBlending, fog:false });
-  m.color.setScalar(boost); signMats.push(m);
+  m.color.setScalar(boost*.55); signMats.push(m);
   const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,h), m); mesh.position.set(...pos); mesh.rotation.y=ry; scene.add(mesh); return mesh;
 }
 const loadImg=src=>new Promise(r=>{ const i=new Image(); i.onload=()=>r(i); i.onerror=()=>r(null); i.src=src; });
