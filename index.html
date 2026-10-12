@@ -181,7 +181,7 @@ scene.fog = new THREE.FogExp2(0x07050b, 0.028);
 const camera = new THREE.PerspectiveCamera(68, 1, 0.05, 140);
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(256,256), 0.95, 0.55, 0.55);
+const bloom = new UnrealBloomPass(new THREE.Vector2(256,256), 0.95, 0.5, 0.72);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 function resize(){
@@ -245,7 +245,7 @@ function textLines(g, lines, font, color, cx, y0, lh, coreScale=1){
 const signMats=[];
 function sign(c, w, h, pos, ry, boost=1.5){
   const m=new THREE.MeshBasicMaterial({ map:tex(c), transparent:true, depthWrite:false, toneMapped:false, blending:THREE.AdditiveBlending, fog:false });
-  m.color.setScalar(boost*.55); signMats.push(m);
+  m.color.setScalar(Math.min(boost,1.2)*.42); signMats.push(m);
   const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,h), m); mesh.position.set(...pos); mesh.rotation.y=ry; scene.add(mesh); return mesh;
 }
 const loadImg=src=>new Promise(r=>{ const i=new Image(); i.onload=()=>r(i); i.onerror=()=>r(null); i.src=src; });
