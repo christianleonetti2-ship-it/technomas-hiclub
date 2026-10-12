@@ -163,7 +163,7 @@ const ACCESS_CODE = 'THMSXL';
 /* ===================================================== */
 
 const BPM = 132, SPB = 60 / BPM, STEP = SPB / 4;
-const PATH_END = 75;
+const PATH_END = 104;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = id => document.getElementById(id);
 const store = { get(k){ try{ return localStorage.getItem(k) }catch(e){ return null } }, set(k,v){ try{ localStorage.setItem(k,v) }catch(e){} } };
@@ -395,11 +395,12 @@ function buildRig(){
   // red LED strips across the ceiling
   for(let z=-15;z<=15;z+=2.2){ const m=ledMat(0xff1020); rig.strips.push({m,z}); ledLine(m,[-9.6,H-.3,z],[9.6,H-.3,z],.04); }
   // hanging triangle frames
-  rig.tri = ledMat(0xff1020);
+  rig.tris = [];
   for(const [x,z,rot] of [[-4,-8,.3],[3,-5,-.4],[-1,-2.5,1.1],[6,-10,.8],[-6.5,-3.5,-.6],[4.5,1,.2],[-3,4,.9]]){
     const g=new THREE.Group(); g.position.set(x,4.35,z); g.rotation.set(.12,rot,.08); scene.add(g);
+    const m=ledMat(0xff1020); rig.tris.push({g,m,rot,x,z});
     const s=1.3, pts=[[0,0,-s],[s*.87,0,s*.5],[-s*.87,0,s*.5]];
-    for(let i=0;i<3;i++) ledLine(rig.tri,pts[i],pts[(i+1)%3],.05,g);
+    for(let i=0;i<3;i++) ledLine(m,pts[i],pts[(i+1)%3],.05,g);
     addBox('fix',.03,.6,.03,x,4.68,z);
   }
   // downlights
@@ -494,19 +495,29 @@ function buildSigns(){
     const big=logoSign(IMG.hi,1024,'#4fe820',22,.05), bw=7.4; sign(big,bw,bw*big.height/big.width,[10.33,2.25,11.2],Math.PI/2,.72);
   }
   if(IMG.tm && cagePlaque){ // TECHNOMAS plaque over the cage entrance
-    const [c,g]=cnv(1120,200); g.fillStyle='#efede6'; g.fillRect(0,0,1120,200); g.strokeStyle='#b9b6ad'; g.lineWidth=6; g.strokeRect(3,3,1114,194);
-    const w=1020, h=Math.round(IMG.tm.height*w/IMG.tm.width); g.drawImage(tinted(IMG.tm,w,h,'#0b0b0c'),50,(200-h)/2);
-    const tx=tex(c); const pm=new THREE.MeshStandardMaterial({ map:tx, emissiveMap:tx, emissive:0xffffff, emissiveIntensity:.42, roughness:.6 });
+    // black steel like the cage bars, letters in raw steel so they catch the beams
+    const [c,g]=cnv(1120,200); g.fillStyle='#0a0a0b'; g.fillRect(0,0,1120,200); g.strokeStyle='#202024'; g.lineWidth=8; g.strokeRect(4,4,1112,192);
+    const w=1020, h=Math.round(IMG.tm.height*w/IMG.tm.width); g.drawImage(tinted(IMG.tm,w,h,'#9a9aa0'),50,(200-h)/2);
+    const tx=tex(c); const pm=new THREE.MeshStandardMaterial({ map:tx, roughness:.32, metalness:.6 });
     const pw=1.3, ph=pw*200/1120, {x,y,z}=cagePlaque;
     const pl=new THREE.Mesh(new THREE.PlaneGeometry(pw,ph),pm); pl.position.set(x+.025,y,z); pl.rotation.y=Math.PI/2; scene.add(pl);
     solid(M.rail,.03,ph+.04,pw+.04,x,y,z);
   }
+  // small TECHNOMAS block standing on the DJ booth, logo facing the floor
+  if(IMG.tm){ const [c,g]=cnv(1200,160); g.fillStyle='#0b0b0c'; g.fillRect(0,0,1200,160);
+    const w=1080, h=Math.round(IMG.tm.height*w/IMG.tm.width); g.drawImage(tinted(IMG.tm,w,h,'#f1eee6'),60,(160-h)/2);
+    const tx=tex(c); const face=new THREE.MeshStandardMaterial({ map:tx, roughness:.8, metalness:0 }); // matte print, lit only by the room
+    const side=new THREE.MeshStandardMaterial({ color:0x0b0b0c, roughness:.8, metalness:0 });
+    const bw=1.5, bh=bw*160/1200, bd=.14;
+    const blk=new THREE.Mesh(new THREE.BoxGeometry(bw,bh,bd),[side,side,side,side,face,face]);
+    blk.position.set(0,1.75+bh/2,-11.97); scene.add(blk); }
   // TECHNOMAS banner on the corridor wall (outside, right-hand side of the building)
   if(IMG.tm){ const [c,g]=cnv(1200,240); g.fillStyle='#0c0c0e'; g.fillRect(0,0,1200,240);
     g.strokeStyle='#d42030'; g.lineWidth=8; g.strokeRect(14,14,1172,212);
     const w=1040, h=Math.round(IMG.tm.height*w/IMG.tm.width); g.drawImage(tinted(IMG.tm,w,h,'#f2efe8'),80,(240-h)/2);
     g.fillStyle='#8a8a8f'; for(const x of [30,600,1170]) for(const y of [30,210]){ g.beginPath(); g.arc(x,y,7,0,7); g.fill(); }
-    const tx=tex(c); const bm=new THREE.MeshStandardMaterial({ map:tx, emissiveMap:tx, emissive:0xffffff, emissiveIntensity:.28, roughness:.85, side:THREE.DoubleSide });
+    const tx=tex(c); const bm=new THREE.MeshStandardMaterial({ map:tx, emissiveMap:tx, emissive:0xffffff, emissiveIntensity:.05, roughness:.9, side:THREE.DoubleSide });
+    const bl=new THREE.PointLight(0xfff0dc,5,6,1.6); bl.position.set(11.5,3.05,-2.6); scene.add(bl); // small wash so the fabric reads under the green LEDs
     const bw=5.4, bh=bw*240/1200, ban=new THREE.Mesh(new THREE.PlaneGeometry(bw,bh,24,1),bm);
     const pos=ban.geometry.attributes.position; for(let i=0;i<pos.count;i++){ pos.setZ(i,Math.sin((pos.getX(i)/bw+.5)*Math.PI*6)*.02); } ban.geometry.computeVertexNormals();
     ban.position.set(10.36,2.25,-2.6); ban.rotation.y=Math.PI/2; scene.add(ban);
@@ -584,7 +595,7 @@ function personGeo(up){
 }
 function buildCrowd(pathPts){
   const mat=new THREE.MeshStandardMaterial({ color:0x0d0c11, roughness:.8, metalness:.05 });
-  const near=(x,z)=>pathPts.some(p=>Math.hypot(p.x-x,p.z-z)<1.15);
+  const near=(x,z)=>pathPts.some(p=>Math.hypot(p.x-x,p.z-z)<.6);
   const tryAdd=(x,z,y)=>{ if(near(x,z)) return; if(colliders.some(c=>x>c.x0-.25&&x<c.x1+.25&&z>c.z0-.25&&z<c.z1+.25)) return;
     if(people.some(p=>Math.hypot(p.x-x,p.z-z)<.47)) return; people.push({x,z,y,ph:rnd(0,6.28),rot:rnd(-.6,.6)+(z>2?Math.PI:0),s:rnd(.92,1.08),up:Math.random()<.28,sw:rnd(.6,1.4)}); };
   // packed club: dense on the dancefloor, full everywhere else
@@ -715,8 +726,15 @@ const KEYS=[
   {t:51, p:[4.9,1.7,-1.6], l:[2,2.1,-10]},
   {t:57, p:[3.6,1.7,-5.6], l:[-2,3.8,-13],  ch:['05','In pista']},
   {t:63, p:[1.3,1.7,-9.4], l:[0,2.4,-15]},
-  {t:69.5,p:[4.4,2.35,-11.4],l:[-1,1.8,1],  ch:['06','Il palco']},
-  {t:PATH_END,p:[3.6,2.35,-11.9],l:[-1.5,2,6]},
+  {t:68, p:[4.4,2.35,-11.6], l:[2,2.2,-14],  ch:['06','Il palco']},
+  {t:72, p:[2.2,2.35,-14.1], l:[.5,2.1,-12.5], ch:['07','Backstage']},
+  {t:76, p:[-1.4,2.35,-14.3],l:[0,2.2,0]},
+  {t:80, p:[-4.9,2.35,-13.1],l:[-4,2,-6]},
+  {t:84, p:[-4.5,1.7,-9.6],  l:[-3,2,4]},
+  {t:90, p:[-4.4,1.7,1.0],   l:[0,2,12]},
+  {t:95, p:[.5,1.7,10.4],    l:[.6,2.3,14], ch:['08','Dalla pedana']},
+  {t:98, p:[.6,2.3,12.9],    l:[.3,2.5,0]},
+  {t:PATH_END,p:[.6,2.32,14.3],l:[0,2.5,-14]},
 ];
 const pCurve=new THREE.CatmullRomCurve3(KEYS.map(k=>new THREE.Vector3(...k.p)),false,'centripetal');
 const lCurve=new THREE.CatmullRomCurve3(KEYS.map(k=>new THREE.Vector3(...k.l)),false,'centripetal');
@@ -737,6 +755,7 @@ const fontsReady = Promise.race([
 buildHall(); buildRig(); buildHeads(); buildLasers(); buildFog(); buildLights(); buildExterior();
 const pathPts=[]; for(let i=0;i<=300;i++){ const q=pCurve.getPoint(i/300); if(q.x<10) pathPts.push(q); }
 buildCrowd(pathPts);
+
 Promise.all([fontsReady, loadImg(window.LOGO_HI).then(i=>IMG.hi=i), loadImg(window.LOGO_TM).then(i=>IMG.tm=i)]).then(()=>{ buildSigns(); $('go').disabled=false; $('go').textContent='Entra'; });
 
 /* ---------- state ---------- */
@@ -818,7 +837,7 @@ function stepFree(dt){
 }
 
 /* ---------- the light show ---------- */
-let strobeA=0;
+let strobeA=0, lastEnergy=0;
 function show(t, dt){
   const beat=t/SPB, bar=Math.floor(beat/4), ph=beat%1, bph=(beat%4)/4, sec=section(Math.max(0,bar)), kick=Math.pow(1-ph,3);
   const nm=sec.name, prog=(sec.i+bph)/sec.len;
@@ -850,8 +869,38 @@ function show(t, dt){
     if(nm==='drop'&&bar%4===0) k = (Math.floor(beat)%5===i||Math.floor(beat)%5===4-i)?1.6:.15;
     m.color.copy(ledCol).multiplyScalar(k*1.4); });
   rig.v.color.copy(nm==='break'?RED:ledCol).multiplyScalar((nm==='break'?.4:ledI)*1.5);
-  rig.strips.forEach((s,i)=>{ let k=stripI; if(nm==='drop'){ const w=((beat*2)%rig.strips.length); k*= .4+1.2*Math.max(0,1-Math.abs(i-w)/2.2); } s.m.color.copy(nm==='break'?WARM:RED).multiplyScalar(k*1.3); });
-  rig.tri.color.copy(RED).multiplyScalar(nm==='drop'?.5+1.1*kick:ledI);
+  // ceiling LED strips: their own programme per section
+  const NS=rig.strips.length, v4=bar%4;
+  rig.strips.forEach((s,i)=>{ let k=stripI, col=RED;
+    if(nm==='intro'){ k=.25+.25*Math.max(0,Math.sin(t*1.2-i*.6)); }
+    else if(nm==='build'){ const sp=2+prog*10; k=.15+ (Math.sin(t*sp-i*.9)>.6?1.2*prog+.3:0); }
+    else if(nm==='drop'){
+      if(v4===0){ const w=(beat*2)%NS; k=.15+1.4*Math.max(0,1-Math.abs(i-w)/1.6); }
+      else if(v4===1){ k=(Math.floor(beat)%2)?.05:.1+1.5*kick; }
+      else if(v4===2){ const w=Math.abs(((beat)%(2*NS))-NS); k=.12+1.3*Math.max(0,1-Math.abs(i-w)/1.3); col=i%2?VIOLET:RED; }
+      else { k=((Math.sin(i*12.9898+Math.floor(beat*4)*78.233)*43758.5453)%1+1)%1>.62?1.6:.08; }
+    } else { k=.12+.3*Math.max(0,Math.sin(t*.8-i*.45)); col=WARM; }
+    if(blind>.3) k*=Math.max(0,1-blind*1.6);
+    s.m.color.copy(col).multiplyScalar(k*1.3); });
+  // triangle frames: colour chase and slow mechanical motion
+  rig.tris.forEach((tr,i)=>{ let k=ledI, col=RED;
+    const mv = nm==='drop'?1:(nm==='build'?.5+prog*.5:(nm==='break'?.35:.15));
+    tr.g.rotation.y = tr.rot + Math.sin(t*.35+i*1.7)*.5*mv + (nm==='drop'&&v4===2? t*.6*(i%2?1:-1):0);
+    tr.g.rotation.x = .12 + Math.sin(t*.9+i)*.22*mv; tr.g.rotation.z = .08 + Math.cos(t*.7+i*.8)*.18*mv;
+    tr.g.position.y = 4.35 + Math.pow(kick,2)*.05*energy;
+    if(nm==='intro') k=.4+.3*Math.sin(t*1.5+i);
+    else if(nm==='build') k=((beat*(prog<.5?1:4)+i)%2)<1?1.2*prog+.3:.15;
+    else if(nm==='drop'){
+      if(v4===0) k = (Math.floor(beat)%rig.tris.length===i)?1.8:.2;
+      else if(v4===1){ k=(i+Math.floor(beat))%2?.08:.3+1.4*kick; }
+      else if(v4===2){ k=1.1; col=i%2?VIOLET:RED; }
+      else { k=.4+1.3*kick; }
+    } else { k=.3+.25*Math.sin(t*1.1+i); col=WARM; }
+    if(blind>.3) k*=Math.max(0,1-blind*1.6);
+    tr.m.color.copy(col).multiplyScalar(k*1.2); });
+  // TECHNOMAS plaque: picks up the room light instead of glowing flat white
+  if(rig.plaque){ tmpC.copy(nm==='break'?WARM:washCol).lerp(WHITE,.5); rig.plaque.emissive.copy(tmpC);
+    rig.plaque.emissiveIntensity = .1 + .22*Math.pow(kick,2)*energy + blind*.45 + (nm==='intro'?.12:0); }
   rig.downMat.color.setScalar(down*2);
   L.hemi.intensity=hemi;
   L.stage.color.copy(nm==='break'?WHITE:washCol); L.stage.intensity=washI*(nm==='break'?(.5+center*1.5):1);
@@ -908,10 +957,10 @@ function frame(){
   if(S.mode==='gate'){
     gateT+=dt; const k=Math.sin(gateT*.15);
     camera.position.set(22.5+k*.8,1.7,22.5-Math.abs(k)*.6); camera.rotation.set(.06,.86+k*.05,0,'YXZ');
-    show(gateT*.6+2,dt);
+    lastEnergy=show(gateT*.6+2,dt).energy;
   } else {
     const t=music.time();
-    show(t,dt);
+    lastEnergy=show(t,dt).energy;
     if(S.mode==='guide'){
       const {p,l}=pathAt(t);
       const idle=now-S.lastLook; if(idle>2.2 && !look){ S.yawOff*=Math.exp(-dt*.9); S.pitchOff*=Math.exp(-dt*.9); }
