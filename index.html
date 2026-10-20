@@ -83,6 +83,19 @@ label.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 
 #freebar{position:absolute;right:16px;bottom:calc(30px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;justify-items:end;pointer-events:auto}
 #freehint{font-size:12px;color:var(--dim);text-align:right;max-width:22ch;line-height:1.4}
 
+/* ticket */
+a.chip.tk{background:var(--red);border-color:var(--red);color:#fff;text-decoration:none;font-weight:600}
+#tix{position:absolute;left:0;right:0;top:calc(64px + env(safe-area-inset-top,0px));display:grid;justify-items:center;padding:0 16px;pointer-events:none}
+.tix-in{position:relative;width:min(360px,100%);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:6px;padding:16px 16px 16px 18px;display:grid;gap:10px;backdrop-filter:blur(10px);pointer-events:auto;animation:tixIn .5s ease-out}
+.tix-in .row1{display:flex;align-items:center;gap:10px;font-size:13px;letter-spacing:.2em;font-weight:600}
+.tix-in .row1 .logo{width:130px;height:14px;color:var(--ink)}
+.tix-in p{margin:0;font-size:14px;line-height:1.45;color:var(--dim)}
+.tix-in a.btn{display:block;text-align:center;text-decoration:none}
+#tixX{position:absolute;top:6px;right:6px;width:32px;height:32px;border:0;background:transparent;font-size:20px;color:var(--dim)}
+.end-in a.btn{grid-column:1/-1;text-align:center;text-decoration:none}
+@media (max-width:430px){ .brand > span:not(.tm){display:none} .brand .tm{width:84px} .tools{gap:6px} .chip{padding:7px 9px;font-size:10px;letter-spacing:.1em} }
+@keyframes tixIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){ .tix-in{animation:none} }
 #strobe{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;mix-blend-mode:screen}
 @media (prefers-reduced-motion: reduce){ #strobe{display:none} }
 </style>
@@ -99,6 +112,7 @@ label.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 
       <div class="tools">
         <button class="chip" id="bSound" aria-pressed="true">Audio</button>
         <button class="chip" id="bStrobe" aria-pressed="true">Strobo</button>
+        <a class="chip tk" href="https://xceed.me/en/napoli/event/technomas-xl-round-ii/248550/channel/techno-mas" target="_blank" rel="noopener">Ticket</a>
       </div>
     </div>
     <div class="bottom" id="guideUi">
@@ -113,7 +127,16 @@ label.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 
         <div class="row">
           <button class="btn p" id="bFree">Esplora libero</button>
           <button class="btn" id="bReplay">Rifai il percorso</button>
+          <a class="btn p" href="https://xceed.me/en/napoli/event/technomas-xl-round-ii/248550/channel/techno-mas" target="_blank" rel="noopener">Acquista ticket</a>
         </div>
+      </div>
+    </div>
+    <div id="tix" hidden>
+      <div class="tix-in" role="dialog" aria-label="Biglietti Technomas XL Round II">
+        <button id="tixX" aria-label="Chiudi">×</button>
+        <div class="row1"><span class="logo lg-tm" role="img" aria-label="Technomas"></span><span>XL · ROUND II</span></div>
+        <p>Questo è il club che ti aspetta. I biglietti sono in vendita su Xceed.</p>
+        <a class="btn p" href="https://xceed.me/en/napoli/event/technomas-xl-round-ii/248550/channel/techno-mas" target="_blank" rel="noopener">Acquista ticket</a>
       </div>
     </div>
     <div id="free" hidden>
@@ -785,7 +808,7 @@ function startFree(){
   const f=S.free; f.pos.copy(camera.position); if(f.pos.z>15.5||Math.abs(f.pos.x)>9.5) f.pos.set(7,1.7,8.5);
   const e=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ'); f.yaw=e.y; f.pitch=e.x;
 }
-$('bFree').onclick=startFree; $('bReplay').onclick=()=>startGuide(0); $('bGuide').onclick=()=>startGuide(0);
+$('bFree').onclick=startFree; $('tixX').onclick=()=>{ $('tix').hidden=true; }; $('bReplay').onclick=()=>startGuide(0); $('bGuide').onclick=()=>startGuide(0);
 $('bSound').onclick=e=>{ const on=e.currentTarget.getAttribute('aria-pressed')!=='true'; e.currentTarget.setAttribute('aria-pressed',on); music.mute(!on); };
 $('bStrobe').onclick=e=>{ S.strobe=!S.strobe; e.currentTarget.setAttribute('aria-pressed',S.strobe); };
 $('bStrobe').setAttribute('aria-pressed',S.strobe);
@@ -972,6 +995,7 @@ function frame(){
       const ch=chapterAt(t); $('chapter').innerHTML=`<small>${ch[0]}</small>${ch[1]}`;
       $('prog').style.width=Math.min(100,t/PATH_END*100)+'%';
       music.setMuffle(p.x>10.6?520:(p.x>10?2400:18000));
+      if(t>44 && !S.tixShown){ S.tixShown=true; $('tix').hidden=false; setTimeout(()=>{ $('tix').hidden=true; },14000); }
       if(t>=PATH_END && $('end').hidden){ $('end').hidden=false; $('guideUi').hidden=true; }
     } else if(S.mode==='free'){ stepFree(dt); music.setMuffle(18000); }
   }
