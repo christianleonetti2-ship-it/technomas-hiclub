@@ -609,6 +609,19 @@ function buildExterior(){
   ext.sky.position.set(5,0,20); scene.add(ext.sky);
   buildAtrium(G);
 }
+/* ---------- queues: outside along the corridor and into the street, inside at the two windows ---------- */
+function buildQueues(G){
+  const pts=[]; const add=(x,z,ry)=>pts.push([x+rnd(-.09,.09),z+rnd(-.09,.09),ry+rnd(-.4,.4),rnd(.92,1.08)]);
+  for(let z=16.0; z<25.2; z+=.6) add(13.35,z,Math.PI);          // along the fence, up to the door
+  for(let x=14.4; x<24.6; x+=.6) add(x,25.6,-Math.PI/2);         // out of the corridor into the street
+  for(let z=26.3; z<35.5; z+=.6) add(24.7,z,Math.PI);            // and round the corner
+  for(let x=7.3; x<9.9; x+=.58) add(x,12.45,-Math.PI*.8); add(6.7,12.1,Math.PI);   // ticket window
+  for(let x=2.1; x>-2.2; x-=.58) add(x,12.45,Math.PI*.8); add(2.7,12.1,Math.PI);   // cloakroom window
+  const mat=new THREE.MeshStandardMaterial({ color:0x16151b, roughness:.8 });
+  const im=new THREE.InstancedMesh(personGeo(false),mat,pts.length), d=new THREE.Object3D();
+  pts.forEach(([x,z,ry,sc],i)=>{ d.position.set(x,G,z); d.rotation.set(0,ry,0); d.scale.setScalar(sc); d.updateMatrix(); im.setMatrixAt(i,d.matrix); });
+  scene.add(im);
+}
 /* ---------- entrance hall under the club: ticket + cloakroom windows, stairs straight ahead ---------- */
 function buildAtrium(G){
   floorPiece(-10,10,8.5,16,G);
@@ -629,7 +642,6 @@ function buildAtrium(G){
   const coatCols=[0x111114,0x1c1a18,0x231b1b,0x15181d,0x2a2a2a];
   solid(M.steel,4.4,.04,.04,1.0,G+1.95,9.2);
   for(let i=0;i<16;i++){ const cm=new THREE.MeshStandardMaterial({ color:coatCols[i%5], roughness:.95 }); const c=solid(cm,.48,1.0,.1,-1.0+i*.27,G+1.42,9.2); c.rotation.y=rnd(-.25,.25); }
-  for(const [x,z] of [[6.9,12.4],[3.0,12.5],[7.6,12.9]]){ const m=new THREE.Mesh(pg,staff); m.position.set(x,G,z); m.rotation.y=Math.PI; scene.add(m); }
   // stairs: flight 1 straight ahead, landing, flight 2 up into the regia block and out into the club
   const stepL=ledMat(0xff8a2a); stepL.color.multiplyScalar(1.2);
   for(let i=0;i<10;i++){ const h=.17*(i+1), x=-2.2-.3*i; solid(M.plat,.3,h,1.4,x-.15,G+h/2,15.1); ledLine(stepL,[x-.01,G+h-.01,14.4],[x-.01,G+h-.01,15.8],.02); }
@@ -639,6 +651,7 @@ function buildAtrium(G){
   const red=ledMat(0xff2030); red.color.multiplyScalar(1.1);
   ledLine(red,[-2.4,-.3,12],[9.8,-.3,12],.03);
   ledLine(stepL,[-2.2,G+1.0,15.86],[-5.2,G+2.7,15.86],.03); ledLine(stepL,[-5.2,G+2.7,15.86],[-9.85,G+2.7,15.86],.03); ledLine(stepL,[-9.86,G+2.7,14.4],[-9.86,G+4.4,11.4],.03); ledLine(red,[-2.4,-.3,15.85],[9.8,-.3,15.85],.03);
+  buildQueues(G);
   const dw=ledMat(0xffe2c0); dw.color.multiplyScalar(.9);
   for(const [x,z] of [[8,13.8],[4,13.8],[0,13.8],[6,10],[1,10]]){ const d=new THREE.Mesh(new THREE.CircleGeometry(.11,14),dw); d.rotation.x=Math.PI/2; d.position.set(x,-.23,z); scene.add(d); }
 }
