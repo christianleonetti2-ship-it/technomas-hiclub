@@ -100,6 +100,7 @@ a.chip.tk{background:var(--red);border-color:var(--red);color:#fff;text-decorati
 @media (prefers-reduced-motion: reduce){ #strobe{display:none} }
 </style>
 
+
 </head>
 <body>
 <div id="app">
@@ -305,7 +306,7 @@ function floorPiece(x0,x1,z0,z1,y){
 }
 function buildHall(){
   // floor stops at the regia block: the stairs come up inside it
-  floorPiece(-10,10,-16,11.4,0); floorPiece(-2.3,10,11.4,16,0);
+  floorPiece(-10,10,-16,10.8,0); floorPiece(-8.2,10,10.8,16,0);
   const ce = new THREE.Mesh(new THREE.PlaneGeometry(20,32), M.ceil); ce.rotation.x=Math.PI/2; ce.position.y=H; scene.add(ce);
   // walls
   solid(M.wall,.3,H,32,-10.15,H/2,0); solid(M.wall,20.6,H,.3,0,H/2,-16.15); solid(M.wall,20.6,H,.3,0,H/2,16.15);
@@ -323,20 +324,22 @@ function buildHall(){
     for(const xe of [x0,x1]) if(xe<9.6){ railRun([xe,.6,12.2],[xe,.6,15.7]); collide(xe-.12,xe+.12,12.2,15.7); }
     for(let i=0;i<2;i++){ addBox('plat',g1-g0,.2*(i+1),.32,(g0+g1)/2,.1*(i+1),11.9-(1-i)*.32); ledLine(stepL,[g0,.2*(i+1)-.02,11.74-(1-i)*.32],[g1,.2*(i+1)-.02,11.74-(1-i)*.32],.025); }
   }
-  // regia: one solid concrete block in the back-left corner; booth on top, the stairs from the entrance come out through its base
-  const conc = new THREE.MeshStandardMaterial({ color:0x45454a, roughness:.92, emissive:0x1a1a1d });
-  const RY=2.6;
-  solid(conc,5.9,RY,.3,-5.25,RY/2,11.55);            // front, right of the passage
-  solid(conc,1.6,RY-2.3,.3,-9.0,2.3+(RY-2.3)/2,11.55); // lintel over the passage
-  solid(conc,.3,RY,4.6,-2.45,RY/2,13.7);              // side
-  solid(M.black,7.6,.3,4.6,-6.05,RY-.15,13.7);         // booth floor
-  solid(conc,7.6,1.15,.3,-6.05,RY+.575,11.55); solid(conc,7.7,.08,.42,-6.05,RY+1.19,11.55);
-  for(const x of [-3.9,-3.4,-2.95]) solid(M.fix,.4,.14,.32,x,RY+1.3,11.65);
-  addBox('black',4.6,.9,.7,-6.6,RY+.45,12.4);
-  const mon = ledMat(0xb04aff); mon.color.multiplyScalar(.35); const mm=solid(mon,.8,.48,.02,-7.4,RY+1.45,12.3); mm.rotation.x=-.2;
-  const mon2 = ledMat(0x4a8cff); mon2.color.multiplyScalar(.3); const m2=solid(mon2,.6,.38,.02,-6.3,RY+1.4,12.3); m2.rotation.x=-.2;
-  const tech=new THREE.Mesh(personGeo(false),new THREE.MeshStandardMaterial({ color:0x1e1c24, roughness:.7 })); tech.position.set(-6.8,RY,12.95); scene.add(tech);
-  collide(-10,-2.25,11.35,16);
+  // regia: black concrete block in the back-left corner; the stairs are a separate stairwell just to its left
+  const conc = new THREE.MeshStandardMaterial({ color:0x26262a, roughness:.85, emissive:0x0b0b0d });
+  const RY=1.6;
+  solid(conc,4.6,RY+1.0,.3,-5.7,(RY+1.0)/2,11.75);          // front with parapet
+  solid(conc,4.72,.07,.36,-5.7,RY+1.035,11.75);              // cap
+  solid(conc,.3,RY,4.0,-7.85,RY/2,13.9); solid(conc,.3,RY,4.0,-3.55,RY/2,13.9); // sides
+  solid(M.black,4.0,.25,3.95,-5.7,RY-.13,13.9);               // booth floor (inside the walls)
+  solid(conc,1.8,1.1,.5,-2.5,.55,11.85); solid(M.black,1.8,.05,.55,-2.5,1.12,11.85); // low counter on the right
+  for(const x of [-3.0,-2.5,-2.0]) solid(M.fix,.34,.12,.3,x,1.21,11.85);
+  addBox('black',3.4,.85,.6,-5.9,RY+.43,12.35);
+  const mon = ledMat(0xb04aff); mon.color.multiplyScalar(.35); const mm=solid(mon,.7,.42,.02,-6.4,RY+1.2,12.2); mm.rotation.x=-.2;
+  const mon2 = ledMat(0x4a8cff); mon2.color.multiplyScalar(.3); const m2=solid(mon2,.55,.34,.02,-5.4,RY+1.15,12.2); m2.rotation.x=-.2;
+  const tech=new THREE.Mesh(personGeo(false),new THREE.MeshStandardMaterial({ color:0x1e1c24, roughness:.7 })); tech.position.set(-6.0,RY,12.85); scene.add(tech);
+  // stairwell balustrade: black half wall with a steel rail, slightly apart from the regia
+  solid(M.black,.12,.95,5.1,-8.26,.475,13.35); solid(M.steel,.05,.05,5.1,-8.26,1.0,13.35);
+  collide(-8.05,-1.55,11.55,16); collide(-10,-8.15,10.75,16);
   // the cage: 5 x 5 m in the middle of the floor
   buildCage();
   // stage
@@ -570,7 +573,7 @@ function buildSigns(){
       g.moveTo(382,300); g.quadraticCurveTo(362,330,340,336); g.moveTo(390,325); g.quadraticCurveTo(367,352,344,350); g.moveTo(374,282); g.quadraticCurveTo(360,300,342,318);
       g.moveTo(250,200); g.lineTo(252,206); g.moveTo(230,230); g.lineTo(232,236); g.moveTo(280,225); g.lineTo(282,231);
       g.stroke(); });
-    sign(c,1.0,1.21,[-5.4,1.45,11.38],Math.PI,1.5); }
+    sign(c,.95,1.15,[-5.7,1.35,11.58],Math.PI,1.5); }
   // atrium signs: cash desk / ticket check and cloakroom on the right-hand wall
   { const [c,g]=cnv(900,200); textLines(g,['TICKET'],'120px "Gochi Hand"','#ff3448',450,100,0); sign(c,1.6,.36,[6.7,-.85,11.63],0,2.4); }
   { const [c,g]=cnv(900,200); textLines(g,['GUARDAROBA'],'110px "Gochi Hand"','#f4f1ea',450,100,0); sign(c,1.8,.4,[2.7,-.85,11.63],0,2.0); }
@@ -583,7 +586,7 @@ const ext = {};
 function buildExterior(){
   const G=-3.4; // street level: the club floor is one storey up
   const asph = new THREE.MeshStandardMaterial({ color:0x1a1d1b, roughness:.9 });
-  const g=new THREE.Mesh(new THREE.PlaneGeometry(160,150),asph); g.rotation.x=-Math.PI/2; g.position.set(0,G-.004,20); scene.add(g);
+  const g=new THREE.Mesh(new THREE.PlaneGeometry(160,150),asph); g.rotation.x=-Math.PI/2; g.position.set(0,G-.03,20); scene.add(g);
   const skin=new THREE.MeshStandardMaterial({ color:0x1d201f, roughness:.85 });
   solid(skin,.3,3.4,32.6,-10.15,G+1.7,0); solid(skin,20.6,3.4,.3,0,G+1.7,-16.15); solid(skin,20.6,3.4,.3,0,G+1.7,16.15);
   solid(skin,.3,3.4,30.15,10.15,G+1.7,-1.075); solid(skin,.3,3.4,.55,10.15,G+1.7,16.025); solid(skin,.3,.9,1.6,10.15,-.45,14.95);
@@ -611,21 +614,37 @@ function buildExterior(){
 }
 /* ---------- queues: outside along the corridor and into the street, inside at the two windows ---------- */
 function buildQueues(G){
-  const pts=[]; const add=(x,z,ry)=>pts.push([x+rnd(-.09,.09),z+rnd(-.09,.09),ry+rnd(-.4,.4),rnd(.92,1.08)]);
-  for(let z=16.0; z<25.2; z+=.6) add(13.35,z,Math.PI);          // along the fence, up to the door
-  for(let x=14.4; x<24.6; x+=.6) add(x,25.6,-Math.PI/2);         // out of the corridor into the street
-  for(let z=26.3; z<35.5; z+=.6) add(24.7,z,Math.PI);            // and round the corner
-  for(let x=7.3; x<9.9; x+=.58) add(x,12.45,-Math.PI*.8); add(6.7,12.1,Math.PI);   // ticket window
-  for(let x=2.1; x>-2.2; x-=.58) add(x,12.45,Math.PI*.8); add(2.7,12.1,Math.PI);   // cloakroom window
-  const mat=new THREE.MeshStandardMaterial({ color:0x16151b, roughness:.8 });
-  const im=new THREE.InstancedMesh(personGeo(false),mat,pts.length), d=new THREE.Object3D();
-  pts.forEach(([x,z,ry,sc],i)=>{ d.position.set(x,G,z); d.rotation.set(0,ry,0); d.scale.setScalar(sc); d.updateMatrix(); im.setMatrixAt(i,d.matrix); });
-  scene.add(im);
+  // loose, crowded queues: groups of 1-3 side by side, people chatting, turning, a few arms up
+  const down=[], up=[];
+  const line=(x0,z0,x1,z1,side0,side1,face)=>{
+    const L=Math.hypot(x1-x0,z1-z0), dx=(x1-x0)/L, dz=(z1-z0)/L, nx=-dz, nz=dx;
+    for(let t=0;t<L;t+=rnd(.42,.62)){
+      const n=Math.random()<.35?1:(Math.random()<.7?2:3);
+      for(let k=0;k<n;k++){
+        const o=rnd(side0,side1), x=x0+dx*t+nx*o+rnd(-.12,.12), z=z0+dz*t+nz*o+rnd(-.12,.12);
+        const ry=face+(Math.random()<.3?rnd(-2.2,2.2):rnd(-.6,.6));
+        (Math.random()<.08?up:down).push([x,z,ry,rnd(.9,1.1)]);
+      }
+    }
+  };
+  line(13.5,15.9,13.5,25.4,-.25,.45,Math.PI);       // corridor, along the fence (path stays on the wall side)
+  line(14.6,25.8,24.4,25.8,-.7,.7,-Math.PI/2);      // out into the street
+  line(24.6,26.4,24.6,36,-.7,.7,Math.PI);           // round the corner
+  line(25.2,36.6,30.5,40.5,-.6,.6,-Math.PI*.7);     // tail, away from the start view
+  line(9.8,12.55,6.9,12.55,-.35,.35,-Math.PI*.8);   // ticket window
+  line(2.3,12.55,-2.1,12.55,-.35,.35,Math.PI*.8);   // cloakroom window
+  for(const [x,z] of [[6.7,12.05],[7.1,12.15],[2.7,12.05],[2.3,12.15]]) down.push([x,z,Math.PI+rnd(-.3,.3),rnd(.95,1.05)]);
+  const mat=new THREE.MeshStandardMaterial({ color:0x16151b, roughness:.8 }), d=new THREE.Object3D();
+  for(const [arr,geo] of [[down,personGeo(false)],[up,personGeo(true)]]){
+    const im=new THREE.InstancedMesh(geo,mat,arr.length);
+    arr.forEach(([x,z,ry,sc],i)=>{ d.position.set(x,G,z); d.rotation.set(0,ry,0); d.scale.setScalar(sc); d.updateMatrix(); im.setMatrixAt(i,d.matrix); });
+    scene.add(im);
+  }
 }
 /* ---------- entrance hall under the club: ticket + cloakroom windows, stairs straight ahead ---------- */
 function buildAtrium(G){
   floorPiece(-10,10,8.5,16,G);
-  for(const [x0,x1,z0,z1] of [[-2.6,10,8.5,16],[-10,-2.6,8.5,11.4]]){ const c=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),M.ceil); c.rotation.x=Math.PI/2; c.position.set((x0+x1)/2,-.22,(z0+z1)/2); scene.add(c); }
+  for(const [x0,x1,z0,z1] of [[-8.2,10,8.5,16],[-10,-8.2,8.5,10.8]]){ const c=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),M.ceil); c.rotation.x=Math.PI/2; c.position.set((x0+x1)/2,-.22,(z0+z1)/2); scene.add(c); }
   // wall with the two windows (ticket, cloakroom) and a door between them
   const W=(x0,x1,y0,y1)=>solid(M.wall,x1-x0,y1-y0,.2,(x0+x1)/2,(y0+y1)/2,11.5);
   const T=-.22;
@@ -634,7 +653,7 @@ function buildAtrium(G){
   solid(M.steel,.04,.18,.04,5.2,G+1.05,11.37);
   for(const x of [2.7,6.7]) solid(M.black,1.5,.06,.45,x,G+.97,11.55); // window counters
   solid(M.wall,20,3.2,.2,0,G+1.6,8.5); solid(M.wall,.2,3.2,3,-2.6,G+1.6,10); solid(M.wall,.15,3.2,3,4.8,G+1.6,10);
-  solid(M.wall,7.6,3.4,.2,-6.3,G+1.7,11.4); // closes the space under the regia
+  solid(M.wall,5.6,3.4,.2,-5.4,G+1.7,11.4); solid(M.wall,.15,3.4,3.6,-8.27,G+1.7,12.6); solid(M.wall,1.7,3.4,.15,-9.1,G+1.7,10.72);
   const roomGlow=new THREE.MeshBasicMaterial({ color:0x8a6a4a });
   for(const x of [1.0,7.4]){ const pnl=new THREE.Mesh(new THREE.PlaneGeometry(5,2.6),roomGlow); pnl.position.set(x,G+1.6,8.62); scene.add(pnl); }
   const staff=new THREE.MeshStandardMaterial({ color:0x1e1c24, roughness:.7 }), pg=personGeo(false);
@@ -644,13 +663,13 @@ function buildAtrium(G){
   for(let i=0;i<16;i++){ const cm=new THREE.MeshStandardMaterial({ color:coatCols[i%5], roughness:.95 }); const c=solid(cm,.48,1.0,.1,-1.0+i*.27,G+1.42,9.2); c.rotation.y=rnd(-.25,.25); }
   // stairs: flight 1 straight ahead, landing, flight 2 up into the regia block and out into the club
   const stepL=ledMat(0xff8a2a); stepL.color.multiplyScalar(1.2);
-  for(let i=0;i<10;i++){ const h=.17*(i+1), x=-2.2-.3*i; solid(M.plat,.3,h,1.4,x-.15,G+h/2,15.1); ledLine(stepL,[x-.01,G+h-.01,14.4],[x-.01,G+h-.01,15.8],.02); }
-  solid(M.plat,4.6,1.7,1.4,-7.5,G+.85,15.1);
-  for(let i=0;i<10;i++){ const h=1.7+.17*(i+1), z=14.4-.3*i; solid(M.plat,1.6,h,.3,-9.0,G+h/2,z-.15); ledLine(stepL,[-9.8,G+h-.01,z-.01],[-8.2,G+h-.01,z-.01],.02); }
-  solid(M.wall,.15,3.4+1.0,3.0,-8.12,G+2.2,12.9);
+  // flight 1 (6 steps) straight ahead, landing, flight 2 (14 steps) up its own stairwell beside the regia
+  for(let i=0;i<6;i++){ const h=.17*(i+1), x=-3.2-.3*i; solid(M.plat,.3,h,1.4,x-.15,G+h/2,15.1); ledLine(stepL,[x-.01,G+h-.01,14.4],[x-.01,G+h-.01,15.8],.02); }
+  solid(M.plat,4.8,1.02,1.5,-7.4,G+.51,15.15);
+  for(let i=0;i<14;i++){ const h=1.02+.17*(i+1), z=15.0-.3*i; solid(M.plat,1.6,h,.3,-9.0,G+h/2,z-.15); ledLine(stepL,[-9.8,G+h-.01,z-.01],[-8.2,G+h-.01,z-.01],.02); }
   const red=ledMat(0xff2030); red.color.multiplyScalar(1.1);
   ledLine(red,[-2.4,-.3,12],[9.8,-.3,12],.03);
-  ledLine(stepL,[-2.2,G+1.0,15.86],[-5.2,G+2.7,15.86],.03); ledLine(stepL,[-5.2,G+2.7,15.86],[-9.85,G+2.7,15.86],.03); ledLine(stepL,[-9.86,G+2.7,14.4],[-9.86,G+4.4,11.4],.03); ledLine(red,[-2.4,-.3,15.85],[9.8,-.3,15.85],.03);
+  ledLine(stepL,[-3.2,G+1.0,15.86],[-5.0,G+2.02,15.86],.03); ledLine(stepL,[-5.0,G+2.02,15.86],[-9.85,G+2.02,15.86],.03); ledLine(stepL,[-9.86,G+2.02,15.0],[-9.86,G+4.4,10.8],.03); ledLine(red,[-2.4,-.3,15.85],[9.8,-.3,15.85],.03);
   buildQueues(G);
   const dw=ledMat(0xffe2c0); dw.color.multiplyScalar(.9);
   for(const [x,z] of [[8,13.8],[4,13.8],[0,13.8],[6,10],[1,10]]){ const d=new THREE.Mesh(new THREE.CircleGeometry(.11,14),dw); d.rotation.x=Math.PI/2; d.position.set(x,-.23,z); scene.add(d); }
@@ -807,10 +826,10 @@ const KEYS=[
   {t:26.5,p:[8.2,-1.7,14.6],l:[5.5,-1.4,11.5], ch:['03',"L'ingresso"]},
   {t:29.5,p:[4.6,-1.7,14.3],l:[2.6,-1.5,11.5]},
   {t:32, p:[.8,-1.7,15.1],  l:[-6,-1,15.1]},
-  {t:34, p:[-1.8,-1.7,15.1],l:[-6,-1.3,15.1]},
-  {t:36.4,p:[-5.0,0,15.1],  l:[-9,-.4,14.6]},
-  {t:37.8,p:[-8.6,0,15.1],  l:[-9,1,11]},
-  {t:40.4,p:[-9.0,1.75,11.0],l:[-5,2.3,-14],   ch:['04','La sala']},
+  {t:34, p:[-2.8,-1.7,15.1],l:[-6,-1.4,15.1]},
+  {t:35.6,p:[-5.0,-.68,15.15],l:[-9,-.9,15.2]},
+  {t:37, p:[-8.9,-.68,15.35],l:[-9,1,11]},
+  {t:40.4,p:[-9.0,1.75,10.5],l:[-5,2.3,-14],   ch:['04','La sala']},
   {t:43.5,p:[-7.0,1.7,8.6], l:[0,2.2,0]},
   {t:46.5,p:[-3.0,1.7,4.2], l:[3,2.4,0]},
   {t:49.5,p:[3.9,1.7,2.6],  l:[2,2.6,0]},
@@ -1078,6 +1097,7 @@ function frame(){
 frame();
 window.HICLUB = { seek:(t)=>{ if(S.mode==='gate'){ $('gate').hidden=true; $('hud').hidden=false; } music.start(t); S.mode='guide'; }, free:startFree, pose:(x,z,yaw,pitch)=>{ startFree(); S.free.pos.set(x,1.7,z); S.free.yaw=yaw; S.free.pitch=pitch; } };
 </script>
+
 
 
 </body>
